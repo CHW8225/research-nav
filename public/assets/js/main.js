@@ -21,12 +21,6 @@ function safeFaIcon(icon, fallback = 'fa-folder') {
     return /^fa-[a-z0-9-]+$/i.test(value) ? value : fallback;
 }
 
-function isSafeImagePath(iconUrl) {
-    return /^https?:\/\//i.test(iconUrl) ||
-        iconUrl.startsWith('/assets/icons/') ||
-        iconUrl.startsWith('/uploads/');
-}
-
 // 页面加载完成后执行
 $(document).ready(function() {
     // 初始化
@@ -108,6 +102,7 @@ function loadCategories() {
         success: function(data) {
             categories = data;
             renderCategories();
+            updateSiteStats();
         },
         error: function() {
             showError('加载分类失败');
@@ -121,22 +116,18 @@ function renderCategories() {
 
     // 添加"全部"选项
     let html = `
-        <li class="nav-item">
-            <a class="nav-link category-tab active" href="#" data-category-id="all">
-                <i class="fa fa-th"></i> 全部
-            </a>
-        </li>
+        <a class="category-tab category-item active" href="#" data-category-id="all">
+            <i class="fa fa-th"></i> 全部
+        </a>
     `;
 
     // 添加各个分类
     categories.forEach(category => {
         const icon = safeFaIcon(category.icon);
         html += `
-            <li class="nav-item">
-                <a class="nav-link category-tab" href="#" data-category-id="${escapeAttribute(category.id)}">
-                    <i class="fa ${icon}"></i> ${escapeHtml(category.name)}
-                </a>
-            </li>
+            <a class="category-tab category-item" href="#" data-category-id="${escapeAttribute(category.id)}">
+                <i class="fa ${icon}"></i> ${escapeHtml(category.name)}
+            </a>
         `;
     });
 
@@ -153,6 +144,7 @@ function loadLinks() {
         success: function(data) {
             links = data;
             renderAllLinks();
+            updateSiteStats();
         },
         error: function() {
             showError('加载链接失败');
@@ -259,42 +251,21 @@ function renderLinkCards(linkList) {
 
 // 渲染图标
 function renderIcon(iconUrl) {
-    iconUrl = String(iconUrl || '').trim();
-
     if (!iconUrl) {
-        return '<div class="link-icon fa-icon"><i class="fa fa-link"></i></div>';
+        return '<div class="link-icon-wrapper link-icon-placeholder"><i class="fa fa-link"></i></div>';
     }
 
-    if (isSafeImagePath(iconUrl)) {
-        return `<img src="${iconUrl}" alt="图标" class="link-icon" onerror="this.src='data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"%23666\" d=\"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z\"/></svg>'">`;
-    }
-
-    // Font Awesome 图标
-    if (iconUrl.startsWith('fa-')) {
-        const iconClass = iconUrl.startsWith('fa-') ? iconUrl : 'fa-' + iconUrl;
-        return `<div class="link-icon fa-icon"><i class="fa ${iconClass}"></i></div>`;
-    }
-
-    return '<div class="link-icon fa-icon"><i class="fa fa-link"></i></div>';
+    const safeIconUrl = escapeHtml(iconUrl);
+    return `
+        <div class="link-icon-wrapper">
+            <img src="${safeIconUrl}" alt="" class="link-icon" loading="lazy" onerror="this.parentElement.classList.add('link-icon-placeholder'); this.remove();">
+        </div>
+    `;
 }
 
-function renderIcon(iconUrl) {
-    iconUrl = String(iconUrl || '').trim();
-
-    if (!iconUrl) {
-        return '<div class="link-icon fa-icon"><i class="fa fa-link"></i></div>';
-    }
-
-    if (isSafeImagePath(iconUrl)) {
-        return `<img src="${escapeAttribute(iconUrl)}" alt="图标" class="link-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="link-icon fa-icon" style="display:none"><i class="fa fa-link"></i></div>`;
-    }
-
-    if (iconUrl.startsWith('fa-')) {
-        const iconClass = safeFaIcon(iconUrl, 'fa-link');
-        return `<div class="link-icon fa-icon"><i class="fa ${iconClass}"></i></div>`;
-    }
-
-    return '<div class="link-icon fa-icon"><i class="fa fa-link"></i></div>';
+function updateSiteStats() {
+    $('#totalLinksStat').text(links.length || 0);
+    $('#totalCategoriesStat').text(categories.length || 0);
 }
 
 // 链接卡片点击事件

@@ -4,6 +4,19 @@ const path = require('path');
 const test = require('node:test');
 const vm = require('vm');
 
+function readProjectFile(relativePath) {
+  return fs.readFileSync(path.join(__dirname, '..', relativePath), 'utf8');
+}
+
+function assertNoMojibake(text, label) {
+  const mojibakePattern = /(绉|鍚|鐧|璧勬簮|涔辩爜|闂ㄦ埛|棣栭〉|瀵艰埅)/;
+  assert.ok(!mojibakePattern.test(text), `${label} contains mojibake text`);
+}
+
+function countMatches(text, pattern) {
+  return (text.match(pattern) || []).length;
+}
+
 function loadMainJs() {
   const source = fs.readFileSync(path.join(__dirname, '../public/assets/js/main.js'), 'utf8');
   const noopChain = {
@@ -53,4 +66,21 @@ test('front-end icon renderer supports local icon paths', () => {
 
   assert.ok(html.includes('src="/assets/icons/sites/example.svg"'));
   assert.ok(html.includes('class="link-icon"'));
+});
+
+test('public files do not contain visible mojibake text', () => {
+  assertNoMojibake(readProjectFile('public/index.html'), 'public/index.html');
+  assertNoMojibake(readProjectFile('public/assets/js/main.js'), 'public/assets/js/main.js');
+});
+
+test('front-end has a single icon renderer implementation', () => {
+  const source = readProjectFile('public/assets/js/main.js');
+  assert.strictEqual(countMatches(source, /function renderIcon\s*\(/g), 1);
+});
+
+test('home page contains A+ hero structure', () => {
+  const html = readProjectFile('public/index.html');
+  assert.ok(html.includes('research-hero'));
+  assert.ok(html.includes('site-stats'));
+  assert.ok(html.includes('搜索科研工具、网站或关键词'));
 });

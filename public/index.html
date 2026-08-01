@@ -38,45 +38,39 @@
         </div>
     </nav>
 
-    <!-- 搜索区域 -->
-    <section class="search-section mt-5">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <div class="search-box">
-                        <h1 class="text-center mb-4">科研，从这里开始！</h1>
-                        <div class="input-group input-group-lg">
-                            <input type="text" class="form-control" id="searchInput" placeholder="搜索科研工具...">
-                            <button class="btn btn-primary" type="button" id="searchBtn">
-                                <i class="fa fa-search"></i> 搜索
-                            </button>
-                        </div>
-                        <div class="search-suggestions mt-3" id="searchSuggestions"></div>
-                    </div>
-                </div>
+    <section class="research-hero" id="home">
+        <div class="hero-glow hero-glow-left"></div>
+        <div class="hero-glow hero-glow-right"></div>
+        <div class="container hero-content">
+            <div class="hero-badge">
+                <i class="fa fa-flask"></i>
+                科研工具导航 · 本地图标缓存
+            </div>
+            <h1>让科研资源更好找，也更好用</h1>
+            <p class="hero-subtitle">整理文献检索、AI 写作、数据分析、绘图制图、期刊投稿等常用科研入口。</p>
+            <div class="search-box hero-search">
+                <i class="fa fa-search search-icon"></i>
+                <input type="text" id="searchInput" class="form-control" placeholder="搜索科研工具、网站或关键词">
+                <button class="btn btn-primary" type="button" id="searchBtn">搜索</button>
+            </div>
+            <div class="search-suggestions" id="searchSuggestions"></div>
+            <div class="site-stats">
+                <div class="stat-pill"><strong id="totalLinksStat">158</strong><span>个工具链接</span></div>
+                <div class="stat-pill"><strong id="totalCategoriesStat">23</strong><span>个科研分类</span></div>
+                <div class="stat-pill"><strong>本地</strong><span>图标优先加载</span></div>
             </div>
         </div>
     </section>
 
-    <!-- 分类导航 -->
-    <section class="category-nav mt-4">
+    <section class="category-section">
         <div class="container">
-            <div class="category-tabs" id="categoryTabs">
-                <ul class="nav nav-pills justify-content-center" id="categoryList" role="tablist">
-                    <!-- 动态加载分类 -->
-                </ul>
-            </div>
+            <div id="categoryList" class="category-list"></div>
         </div>
     </section>
 
-    <!-- 链接展示区域 -->
-    <section class="links-section mt-4">
-        <div class="container">
-            <div id="linksContainer">
-                <!-- 动态加载链接 -->
-            </div>
-        </div>
-    </section>
+    <main class="container links-main links-section">
+        <div id="linksContainer" class="row"></div>
+    </main>
 
     <!-- 页脚 -->
     <footer class="footer mt-5 py-4 bg-light">
