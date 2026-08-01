@@ -9,5 +9,6 @@ logs/
 *.backup
 server/database/backups/
 public/assets/uploads/
+.superpowers/
 .DS_Store
 Thumbs.db
