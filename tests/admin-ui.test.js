@@ -38,8 +38,10 @@ test('admin script uses custom toast and confirm helpers instead of native dialo
   const source = readProjectFile('admin/assets/js/admin.js');
   assert.ok(source.includes('function showToast('));
   assert.ok(source.includes('function showConfirm('));
+  assert.ok(source.includes('bootstrap.Modal'));
   assert.strictEqual(countMatches(source, /\balert\s*\(/g), 0);
   assert.strictEqual(countMatches(source, /\bconfirm\s*\(/g), 0);
+  assert.strictEqual(countMatches(source, /\bshowAlert\s*\(/g), 0);
 });
 
 test('admin has a single link icon renderer implementation', () => {
@@ -50,6 +52,7 @@ test('admin has a single link icon renderer implementation', () => {
 test('admin modal templates escape attribute and textarea values', () => {
   const source = readProjectFile('admin/assets/js/admin.js');
   assert.ok(source.includes('function escapeAttribute('));
+  assert.ok(source.includes("replace(/`/g, '&#96;')"));
   assert.ok(source.includes('escapeAttribute(category.name'));
   assert.ok(source.includes('escapeAttribute(link.title'));
   assert.ok(source.includes('escapeHtml(link.description'));

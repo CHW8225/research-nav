@@ -19,15 +19,63 @@ function escapeAttribute(value) {
     return escapeHtml(value).replace(/`/g, '&#96;');
 }
 
+function getModal(selector) {
+    return bootstrap.Modal.getOrCreateInstance($(selector)[0]);
+}
+
+function showToast(message, type = 'info') {
+    const container = $('#adminToastContainer');
+    const safeMessage = escapeHtml(message);
+    const safeType = ['success', 'error', 'info'].includes(type) ? type : 'info';
+    const toast = $(
+        `<div class="admin-toast admin-toast-${safeType}" role="status">${safeMessage}</div>`
+    );
+
+    container.append(toast);
+    setTimeout(() => {
+        toast.fadeOut(180, function() {
+            $(this).remove();
+        });
+    }, 2600);
+}
+
+function showConfirm(message, options = {}) {
+    const title = options.title || '确认操作';
+    const confirmText = options.confirmText || '确定';
+    const cancelText = options.cancelText || '取消';
+    const danger = options.danger !== false;
+    const modal = $('#confirmModal');
+
+    $('#confirmModalTitle').text(title);
+    $('#confirmModalMessage').text(message);
+    $('#confirmModalOk').text(confirmText).toggleClass('btn-danger', danger).toggleClass('btn-primary', !danger);
+    $('#confirmModalCancel').text(cancelText);
+
+    return new Promise(resolve => {
+        let settled = false;
+        const finish = confirmed => {
+            if (!settled) {
+                settled = true;
+                resolve(confirmed);
+            }
+        };
+
+        $('#confirmModalOk').off('click.confirm').on('click.confirm', () => {
+            getModal('#confirmModal').hide();
+            finish(true);
+        });
+        $('#confirmModalCancel, #confirmModal .btn-close').off('click.confirm').on('click.confirm', () => {
+            getModal('#confirmModal').hide();
+            finish(false);
+        });
+        modal.off('hidden.bs.modal.confirm').on('hidden.bs.modal.confirm', () => finish(false));
+        getModal('#confirmModal').show();
+    });
+}
+
 function safeFaIcon(icon, fallback = 'fa-link') {
     const value = String(icon || '').trim();
     return /^fa-[a-z0-9-]+$/i.test(value) ? value : fallback;
-}
-
-function isSafeImagePath(iconUrl) {
-    return /^https?:\/\//i.test(iconUrl) ||
-        iconUrl.startsWith('/assets/icons/') ||
-        iconUrl.startsWith('/uploads/');
 }
 
 // API 基础 URL
@@ -89,7 +137,7 @@ function checkLogin() {
         method: 'GET',
         success: function(response) {
             if (response.role !== 'admin') {
-                alert('您没有管理员权限');
+                showToast('操作失败，请稍后重试', 'error');
                 window.location.href = '/admin/login.html';
                 return;
             }
@@ -114,12 +162,13 @@ function bindEvents() {
     });
 
     // 退出登录
-    $('#logoutBtn').on('click', function(e) {
+    $('#logoutBtn').on('click', async function(e) {
         e.preventDefault();
-        if (confirm('确定要退出登录吗？')) {
-            removeToken();
-            window.location.href = '/admin/login.html';
-        }
+        const confirmed = await showConfirm('确定要退出登录吗？', { danger: false });
+        if (!confirmed) return;
+
+        removeToken();
+        window.location.href = '/admin/login.html';
     });
 
     // 修改密码
@@ -221,7 +270,7 @@ function loadCategories() {
             updateCategoryFilter();
         },
         error: function() {
-            showAlert('加载分类失败', 'danger');
+            showToast('操作失败，请稍后重试', 'error');
         }
     });
 }
@@ -272,17 +321,19 @@ function updateCategoryFilter() {
 
 // 显示分类模态框
 function showCategoryModal(id = null) {
-    const category = id ? categories.find(c => c.id === id) : null;
+    const category = id ? categories.find(c => c.id === id) : {};
+    const safeName = escapeAttribute(category.name || '');
+    const safeIcon = escapeAttribute(category.icon || '');
 
     const html = `
         <form id="categoryForm">
             <div class="mb-3">
                 <label class="form-label">分类名称 <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="categoryName" value="${category ? category.name : ''}" required>
+                <input type="text" class="form-control" id="categoryName" value="${safeName}" required>
             </div>
             <div class="mb-3">
                 <label class="form-label">图标</label>
-                <input type="text" class="form-control" id="categoryIcon" value="${category ? category.icon || '' : ''}" placeholder="例如: fa-folder">
+                <input type="text" class="form-control" id="categoryIcon" value="${safeIcon}" placeholder="例如: fa-folder">
                 <div class="form-text">Font Awesome 图标类名</div>
             </div>
             <div class="mb-3">
@@ -293,12 +344,12 @@ function showCategoryModal(id = null) {
         </form>
     `;
 
-    $('#modalTitle').text(category ? '编辑分类' : '添加分类');
+    $('#modalTitle').text(id ? '编辑分类' : '添加分类');
     $('#modalBody').html(html);
     $('#modalConfirmBtn').off('click').on('click', function() {
         saveCategory(id);
     });
-    $('#commonModal').modal('show');
+    getModal('#commonModal').show();
 }
 
 // 保存分类
@@ -310,7 +361,7 @@ function saveCategory(id) {
     };
 
     if (!data.name) {
-        alert('请输入分类名称');
+        showToast('请填写必填项', 'error');
         return;
     }
 
@@ -323,29 +374,33 @@ function saveCategory(id) {
         contentType: 'application/json',
         data: JSON.stringify(data),
         success: function() {
-            showAlert(id ? '分类更新成功' : '分类添加成功', 'success');
-            $('#commonModal').modal('hide');
+            showToast('保存成功', 'success');
+            getModal('#commonModal').hide();
             loadCategories();
         },
         error: function(xhr) {
-            showAlert(xhr.responseJSON?.error || '操作失败', 'danger');
+            showToast(xhr.responseJSON?.error || '操作失败，请稍后重试', 'error');
         }
     });
 }
 
 // 删除分类
-function deleteCategory(id) {
-    if (!confirm('确定要删除这个分类吗？')) return;
+async function deleteCategory(id) {
+    const confirmed = await showConfirm('确定要删除这个分类吗？', {
+        title: '确认操作',
+        confirmText: '删除'
+    });
+    if (!confirmed) return;
 
     authenticatedAjax({
         url: `${API_BASE}/categories/${id}`,
         method: 'DELETE',
         success: function() {
-            showAlert('分类删除成功', 'success');
+            showToast('保存成功', 'success');
             loadCategories();
         },
         error: function(xhr) {
-            showAlert(xhr.responseJSON?.error || '删除失败', 'danger');
+            showToast(xhr.responseJSON?.error || '操作失败，请稍后重试', 'error');
         }
     });
 }
@@ -360,7 +415,7 @@ function loadLinks() {
             renderLinksTable();
         },
         error: function() {
-            showAlert('加载链接失败', 'danger');
+            showToast('操作失败，请稍后重试', 'error');
         }
     });
 }
@@ -420,28 +475,11 @@ function renderLinksTable() {
 // 渲染链接图标
 function renderLinkIcon(icon) {
     if (!icon) {
-        return '<i class="fa fa-link text-muted"></i>';
+        return '<span class="admin-link-icon-placeholder"><i class="fa fa-link"></i></span>';
     }
 
-    if (icon.startsWith('http')) {
-        return `<img src="${icon}" class="table-icon" onerror="this.src='data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path fill=\"%23666\" d=\"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z\"/></svg>'">`;
-    }
-
-    return `<i class="fa ${icon} text-primary"></i>`;
-}
-
-function renderLinkIcon(icon) {
-    icon = String(icon || '').trim();
-
-    if (!icon) {
-        return '<i class="fa fa-link text-muted"></i>';
-    }
-
-    if (isSafeImagePath(icon)) {
-        return `<img src="${escapeAttribute(icon)}" class="table-icon" onerror="this.style.display='none';">`;
-    }
-
-    return `<i class="fa ${safeFaIcon(icon)} text-primary"></i>`;
+    const safeIcon = escapeAttribute(icon);
+    return `<img src="${safeIcon}" alt="" class="admin-link-icon" onerror="this.replaceWith(document.createTextNode('🔆'));">`;
 }
 
 // 渲染分页
@@ -474,32 +512,40 @@ function changeLinkPage(page) {
 
 // 显示链接模态框
 function showLinkModal(id = null) {
-    const link = id ? links.find(l => l.id === id) : null;
+    const link = id ? links.find(l => l.id === id) : {};
+    const safeTitle = escapeAttribute(link.title || '');
+    const safeUrl = escapeAttribute(link.url || '');
+    const safeIcon = escapeAttribute(link.icon || '');
+    const safeDescription = escapeHtml(link.description || '');
+    const safeCategoryId = String(link.categoryId || link.category_id || '');
 
     const html = `
         <form id="linkForm">
             <div class="mb-3">
                 <label class="form-label">标题 <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="linkTitle" value="${link ? link.title : ''}" required>
+                <input type="text" class="form-control" id="linkTitle" value="${safeTitle}" required>
             </div>
             <div class="mb-3">
                 <label class="form-label">URL <span class="text-danger">*</span></label>
-                <input type="url" class="form-control" id="linkUrl" value="${link ? link.url : ''}" required>
+                <input type="url" class="form-control" id="linkUrl" value="${safeUrl}" required>
             </div>
             <div class="mb-3">
                 <label class="form-label">描述</label>
-                <textarea class="form-control" id="linkDescription" rows="3">${link ? link.description || '' : ''}</textarea>
+                <textarea class="form-control" id="linkDescription" rows="3">${safeDescription}</textarea>
             </div>
             <div class="mb-3">
                 <label class="form-label">分类 <span class="text-danger">*</span></label>
                 <select class="form-select" id="linkCategory" required>
                     <option value="">请选择分类</option>
-                    ${categories.map(cat => `<option value="${cat.id}" ${link && link.category_id === cat.id ? 'selected' : ''}>${cat.name}</option>`).join('')}
+                    ${categories.map(category => {
+                        const selected = String(category.id) === safeCategoryId ? 'selected' : '';
+                        return `<option value="${escapeAttribute(category.id)}" ${selected}>${escapeHtml(category.name || '')}</option>`;
+                    }).join('')}
                 </select>
             </div>
             <div class="mb-3">
                 <label class="form-label">图标URL</label>
-                <input type="text" class="form-control" id="linkIcon" value="${link ? link.icon || '' : ''}" placeholder="https://...">
+                <input type="text" class="form-control" id="linkIcon" value="${safeIcon}" placeholder="https://...">
             </div>
             <div class="mb-3">
                 <label class="form-label">排序</label>
@@ -516,12 +562,12 @@ function showLinkModal(id = null) {
         </form>
     `;
 
-    $('#modalTitle').text(link ? '编辑链接' : '添加链接');
+    $('#modalTitle').text(id ? '编辑链接' : '添加链接');
     $('#modalBody').html(html);
     $('#modalConfirmBtn').off('click').on('click', function() {
         saveLink(id);
     });
-    $('#commonModal').modal('show');
+    getModal('#commonModal').show();
 }
 
 // 保存链接
@@ -537,7 +583,7 @@ function saveLink(id) {
     };
 
     if (!data.title || !data.url || !data.category_id) {
-        alert('请填写必填项');
+        showToast('请填写必填项', 'error');
         return;
     }
 
@@ -550,31 +596,35 @@ function saveLink(id) {
         contentType: 'application/json',
         data: JSON.stringify(data),
         success: function() {
-            showAlert(id ? '链接更新成功' : '链接添加成功', 'success');
-            $('#commonModal').modal('hide');
+            showToast('保存成功', 'success');
+            getModal('#commonModal').hide();
             loadLinks();
             loadDashboard();
         },
         error: function(xhr) {
-            showAlert(xhr.responseJSON?.error || '操作失败', 'danger');
+            showToast(xhr.responseJSON?.error || '操作失败，请稍后重试', 'error');
         }
     });
 }
 
 // 删除链接
-function deleteLink(id) {
-    if (!confirm('确定要删除这个链接吗？')) return;
+async function deleteLink(id) {
+    const confirmed = await showConfirm('确定要删除这个链接吗？', {
+        title: '确认操作',
+        confirmText: '删除'
+    });
+    if (!confirmed) return;
 
     authenticatedAjax({
         url: `${API_BASE}/links/${id}`,
         method: 'DELETE',
         success: function() {
-            showAlert('链接删除成功', 'success');
+            showToast('保存成功', 'success');
             loadLinks();
             loadDashboard();
         },
         error: function(xhr) {
-            showAlert(xhr.responseJSON?.error || '删除失败', 'danger');
+            showToast(xhr.responseJSON?.error || '操作失败，请稍后重试', 'error');
         }
     });
 }
@@ -589,7 +639,7 @@ function loadAnnouncements() {
             renderAnnouncementsTable();
         },
         error: function() {
-            showAlert('加载公告失败', 'danger');
+            showToast('操作失败，请稍后重试', 'error');
         }
     });
 }
@@ -634,17 +684,19 @@ function renderAnnouncementsTable() {
 
 // 显示公告模态框
 function showAnnouncementModal(id = null) {
-    const announcement = id ? announcements.find(a => a.id === id) : null;
+    const announcement = id ? announcements.find(a => a.id === id) : {};
+    const safeTitle = escapeAttribute(announcement.title || '');
+    const safeContent = escapeHtml(announcement.content || '');
 
     const html = `
         <form id="announcementForm">
             <div class="mb-3">
                 <label class="form-label">标题 <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="announcementTitle" value="${announcement ? announcement.title : ''}" required>
+                <input type="text" class="form-control" id="announcementTitle" value="${safeTitle}" required>
             </div>
             <div class="mb-3">
                 <label class="form-label">内容</label>
-                <textarea class="form-control" id="announcementContent" rows="5">${announcement ? announcement.content || '' : ''}</textarea>
+                <textarea class="form-control" id="announcementContent" rows="5">${safeContent}</textarea>
             </div>
             <div class="mb-3">
                 <div class="form-check">
@@ -657,12 +709,12 @@ function showAnnouncementModal(id = null) {
         </form>
     `;
 
-    $('#modalTitle').text(announcement ? '编辑公告' : '添加公告');
+    $('#modalTitle').text(id ? '编辑公告' : '添加公告');
     $('#modalBody').html(html);
     $('#modalConfirmBtn').off('click').on('click', function() {
         saveAnnouncement(id);
     });
-    $('#commonModal').modal('show');
+    getModal('#commonModal').show();
 }
 
 // 保存公告
@@ -674,7 +726,7 @@ function saveAnnouncement(id) {
     };
 
     if (!data.title) {
-        alert('请输入公告标题');
+        showToast('请填写必填项', 'error');
         return;
     }
 
@@ -687,29 +739,33 @@ function saveAnnouncement(id) {
         contentType: 'application/json',
         data: JSON.stringify(data),
         success: function() {
-            showAlert(id ? '公告更新成功' : '公告添加成功', 'success');
-            $('#commonModal').modal('hide');
+            showToast('保存成功', 'success');
+            getModal('#commonModal').hide();
             loadAnnouncements();
         },
         error: function(xhr) {
-            showAlert(xhr.responseJSON?.error || '操作失败', 'danger');
+            showToast(xhr.responseJSON?.error || '操作失败，请稍后重试', 'error');
         }
     });
 }
 
 // 删除公告
-function deleteAnnouncement(id) {
-    if (!confirm('确定要删除这个公告吗？')) return;
+async function deleteAnnouncement(id) {
+    const confirmed = await showConfirm('确定要删除这个公告吗？', {
+        title: '确认操作',
+        confirmText: '删除'
+    });
+    if (!confirmed) return;
 
     authenticatedAjax({
         url: `${API_BASE}/announcements/${id}`,
         method: 'DELETE',
         success: function() {
-            showAlert('公告删除成功', 'success');
+            showToast('保存成功', 'success');
             loadAnnouncements();
         },
         error: function(xhr) {
-            showAlert(xhr.responseJSON?.error || '删除失败', 'danger');
+            showToast(xhr.responseJSON?.error || '操作失败，请稍后重试', 'error');
         }
     });
 }
@@ -739,7 +795,7 @@ function showChangePasswordModal() {
     $('#modalConfirmBtn').off('click').on('click', function() {
         changePassword();
     });
-    $('#commonModal').modal('show');
+    getModal('#commonModal').show();
 }
 
 // 修改密码
@@ -749,17 +805,17 @@ function changePassword() {
     const confirmPassword = $('#confirmPassword').val();
 
     if (!oldPassword || !newPassword || !confirmPassword) {
-        alert('请填写所有字段');
+        showToast('请填写必填项', 'error');
         return;
     }
 
     if (newPassword !== confirmPassword) {
-        alert('两次输入的新密码不一致');
+        showToast('两次输入的新密码不一致', 'error');
         return;
     }
 
     if (newPassword.length < 6) {
-        alert('新密码长度至少6位');
+        showToast('新密码长度至少6位', 'error');
         return;
     }
 
@@ -772,21 +828,15 @@ function changePassword() {
             newPassword: newPassword
         }),
         success: function() {
-            showAlert('密码修改成功，请重新登录', 'success');
-            $('#commonModal').modal('hide');
+            showToast('保存成功', 'success');
+            getModal('#commonModal').hide();
             setTimeout(function() {
                 removeToken();
                 window.location.href = '/admin/login.html';
             }, 1500);
         },
         error: function(xhr) {
-            showAlert(xhr.responseJSON?.error || '修改失败', 'danger');
+            showToast(xhr.responseJSON?.error || '操作失败，请稍后重试', 'error');
         }
     });
-}
-
-// 显示提示消息
-function showAlert(message, type = 'success') {
-    // 这里可以添加 Toast 或 Alert 显示逻辑
-    alert(message);
 }
