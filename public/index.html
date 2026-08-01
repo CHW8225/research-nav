@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>科研一站式导航 - 科研，从这里开始！</title>
+    <meta name="description" content="专业的科研工具导航网站，一站式汇集文献检索、数据分析、论文写作、图形绘制、科研编程等全流程必备工具。">
+    <meta name="keywords" content="科研导航,科研工具,学术工具,文献管理,数据分析,论文写作">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fa fa-graduation-cap"></i> 科研一站式导航
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#home"><i class="fa fa-home"></i> 首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about"><i class="fa fa-info-circle"></i> 关于</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 搜索区域 -->
+    <section class="search-section mt-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="search-box">
+                        <h1 class="text-center mb-4">科研，从这里开始！</h1>
+                        <div class="input-group input-group-lg">
+                            <input type="text" class="form-control" id="searchInput" placeholder="搜索科研工具...">
+                            <button class="btn btn-primary" type="button" id="searchBtn">
+                                <i class="fa fa-search"></i> 搜索
+                            </button>
+                        </div>
+                        <div class="search-suggestions mt-3" id="searchSuggestions"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 分类导航 -->
+    <section class="category-nav mt-4">
+        <div class="container">
+            <div class="category-tabs" id="categoryTabs">
+                <ul class="nav nav-pills justify-content-center" id="categoryList" role="tablist">
+                    <!-- 动态加载分类 -->
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- 链接展示区域 -->
+    <section class="links-section mt-4">
+        <div class="container">
+            <div id="linksContainer">
+                <!-- 动态加载链接 -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer mt-5 py-4 bg-light">
+        <div class="container text-center">
+            <p class="mb-2">Copyright © 2025 科研一站式导航. All Rights Reserved.</p>
+            <p class="text-muted small">为科研工作者提供一站式工具导航服务</p>
+        </div>
+    </footer>
+
+    <!-- 公告弹窗 -->
+    <div class="modal fade" id="announcementModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fa fa-bullhorn"></i> 公告通知
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="announcementContent">
+                    <!-- 动态加载公告内容 -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">我知道了</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 返回顶部按钮 -->
+    <button class="btn btn-primary back-to-top" id="backToTop">
+        <i class="fa fa-arrow-up"></i>
+    </button>
+
+    <!-- jQuery -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <!-- 自定义脚本 -->
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>

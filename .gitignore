@@ -1,0 +1,13 @@
+node_modules/
+logs/
+*.log
+.env
+.env.*
+!.env.example
+*.zip
+*.bak
+*.backup
+server/database/backups/
+public/assets/uploads/
+.DS_Store
+Thumbs.db
