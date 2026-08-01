@@ -439,3 +439,65 @@ input:checked + .slider:before {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+.login-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 16%, rgba(96, 165, 250, 0.30), transparent 30%),
+    radial-gradient(circle at 82% 12%, rgba(124, 58, 237, 0.22), transparent 28%),
+    linear-gradient(135deg, #f8fbff 0%, #eef6ff 54%, #f7f3ff 100%);
+}
+
+.login-card,
+.admin-card,
+.content-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  box-shadow: 0 16px 42px rgba(15, 23, 42, 0.08);
+}
+
+.login-subtitle {
+  color: #64748b;
+  margin-bottom: 24px;
+}
+
+.admin-toast-container {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.admin-toast {
+  min-width: 240px;
+  max-width: 360px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  color: #0f172a;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.14);
+  pointer-events: auto;
+}
+
+.admin-toast-success {
+  border-left: 4px solid #22c55e;
+}
+
+.admin-toast-error {
+  border-left: 4px solid #ef4444;
+}
+
+.admin-toast-info {
+  border-left: 4px solid #2563eb;
+}
+
+.confirm-modal-content {
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 20px 52px rgba(15, 23, 42, 0.18);
+}

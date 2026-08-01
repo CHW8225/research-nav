@@ -147,8 +147,9 @@
             height: 1rem;
         }
     </style>
+    <link rel="stylesheet" href="/admin/assets/css/admin.css">
 </head>
-<body>
+<body class="login-page">
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
@@ -156,6 +157,7 @@
                 <h2>管理员登录</h2>
             </div>
             <div class="login-body">
+                <p class="login-subtitle">科研导航网站后台管理</p>
                 <!-- 错误提示 -->
                 <div class="alert alert-danger d-none" id="errorAlert" role="alert">
                     <i class="fa fa-exclamation-circle"></i> <span id="errorMessage"></span>
@@ -169,7 +171,7 @@
                                 <i class="fa fa-user"></i>
                             </span>
                             <input type="text" class="form-control" id="username" name="username"
-                                   placeholder="请输入用户名" required autocomplete="username">
+                                   placeholder="用户名" required autocomplete="username">
                         </div>
                     </div>
 
@@ -180,7 +182,7 @@
                                 <i class="fa fa-lock"></i>
                             </span>
                             <input type="password" class="form-control" id="password" name="password"
-                                   placeholder="请输入密码" required autocomplete="current-password">
+                                   placeholder="密码" required autocomplete="current-password">
                         </div>
                     </div>
 
