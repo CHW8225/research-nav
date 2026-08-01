@@ -68,6 +68,16 @@ test('front-end icon renderer supports local icon paths', () => {
   assert.ok(html.includes('class="link-icon"'));
 });
 
+test('front-end icon renderer rejects untrusted image sources', () => {
+  const sandbox = loadMainJs();
+
+  for (const iconUrl of ['javascript:alert(1)', 'data:image/svg+xml,<svg>', 'https://example.com/icon.svg']) {
+    const html = sandbox.renderIcon(iconUrl);
+    assert.ok(html.includes('link-icon-placeholder'));
+    assert.ok(!html.includes('<img'));
+  }
+});
+
 test('public files do not contain visible mojibake text', () => {
   assertNoMojibake(readProjectFile('public/index.html'), 'public/index.html');
   assertNoMojibake(readProjectFile('public/assets/js/main.js'), 'public/assets/js/main.js');

@@ -21,6 +21,11 @@ function safeFaIcon(icon, fallback = 'fa-folder') {
     return /^fa-[a-z0-9-]+$/i.test(value) ? value : fallback;
 }
 
+function isSafeImagePath(iconUrl) {
+    const value = String(iconUrl || '').trim();
+    return value.startsWith('/assets/icons/sites/') || value.startsWith('/uploads/');
+}
+
 // 页面加载完成后执行
 $(document).ready(function() {
     // 初始化
@@ -251,11 +256,11 @@ function renderLinkCards(linkList) {
 
 // 渲染图标
 function renderIcon(iconUrl) {
-    if (!iconUrl) {
+    if (!isSafeImagePath(iconUrl)) {
         return '<div class="link-icon-wrapper link-icon-placeholder"><i class="fa fa-link"></i></div>';
     }
 
-    const safeIconUrl = escapeHtml(iconUrl);
+    const safeIconUrl = escapeHtml(String(iconUrl).trim());
     return `
         <div class="link-icon-wrapper">
             <img src="${safeIconUrl}" alt="" class="link-icon" loading="lazy" onerror="this.parentElement.classList.add('link-icon-placeholder'); this.remove();">
