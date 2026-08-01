@@ -49,6 +49,27 @@ test('admin has a single link icon renderer implementation', () => {
   assert.strictEqual(countMatches(source, /function renderLinkIcon\s*\(/g), 1);
 });
 
+test('admin category filter escapes option values and labels', () => {
+  const source = readProjectFile('admin/assets/js/admin.js');
+
+  assert.match(
+    source,
+    /<option value="\$\{escapeAttribute\(category\.id\)\}">\$\{escapeHtml\(category\.name \|\| ''\)\}<\/option>/
+  );
+});
+
+test('admin link icon renderer only accepts local icon paths', () => {
+  const source = readProjectFile('admin/assets/js/admin.js');
+
+  assert.match(source, /function isSafeImagePath\s*\(/);
+  assert.match(source, /value\.startsWith\('\/assets\/icons\/sites\/'\)/);
+  assert.match(source, /value\.startsWith\('\/uploads\/'\)/);
+  assert.match(
+    source,
+    /function renderLinkIcon\(icon\) \{[\s\S]*?!isSafeImagePath\(icon\)[\s\S]*?admin-link-icon-placeholder/
+  );
+});
+
 test('admin modal templates escape attribute and textarea values', () => {
   const source = readProjectFile('admin/assets/js/admin.js');
   assert.ok(source.includes('function escapeAttribute('));

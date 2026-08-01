@@ -78,6 +78,11 @@ function safeFaIcon(icon, fallback = 'fa-link') {
     return /^fa-[a-z0-9-]+$/i.test(value) ? value : fallback;
 }
 
+function isSafeImagePath(iconUrl) {
+    const value = String(iconUrl || '').trim();
+    return value.startsWith('/assets/icons/sites/') || value.startsWith('/uploads/');
+}
+
 // API 基础 URL
 const API_BASE = '/api';
 
@@ -313,7 +318,7 @@ function updateCategoryFilter() {
     let html = '<option value="">所有分类</option>';
 
     categories.forEach(category => {
-        html += `<option value="${category.id}">${category.name}</option>`;
+        html += `<option value="${escapeAttribute(category.id)}">${escapeHtml(category.name || '')}</option>`;
     });
 
     select.html(html);
@@ -478,7 +483,7 @@ function renderLinksTable() {
 
 // 渲染链接图标
 function renderLinkIcon(icon) {
-    if (!icon) {
+    if (!icon || !isSafeImagePath(icon)) {
         return '<span class="admin-link-icon-placeholder"><i class="fa fa-link"></i></span>';
     }
 

@@ -88,6 +88,11 @@ test('front-end has a single icon renderer implementation', () => {
   assert.strictEqual(countMatches(source, /function renderIcon\s*\(/g), 1);
 });
 
+test('links container is not a Bootstrap row without column children', () => {
+  const html = readProjectFile('public/index.html');
+  assert.doesNotMatch(html, /id="linksContainer"[^>]*\bclass="[^"]*\brow\b/);
+});
+
 test('home page contains A+ hero structure', () => {
   const html = readProjectFile('public/index.html');
   assert.ok(html.includes('research-hero'));
