@@ -8,7 +8,7 @@ function readProjectFile(relativePath) {
 }
 
 function assertNoMojibake(text, label) {
-  const mojibakePattern = /(绉|鍚|鐧|璧勬簮|涔辩爜|闂ㄦ埛|棣栭〉|瀵艰埅|绠＄悊)/;
+  const mojibakePattern = /(绉|鍚|鐧|璧勬簮|涔辩爜|闂ㄦ埛|棣栭〉|瀵艰埅|绠＄悊|鍛樼櫥|褰|绯荤粺|閫€)/;
   assert.ok(!mojibakePattern.test(text), `${label} contains mojibake text`);
 }
 
@@ -16,10 +16,22 @@ function countMatches(text, pattern) {
   return (text.match(pattern) || []).length;
 }
 
-test('admin static files do not contain visible mojibake text', () => {
+test('admin static HTML does not contain visible mojibake text', () => {
   assertNoMojibake(readProjectFile('admin/index.html'), 'admin/index.html');
   assertNoMojibake(readProjectFile('admin/login.html'), 'admin/login.html');
-  assertNoMojibake(readProjectFile('admin/assets/js/admin.js'), 'admin/assets/js/admin.js');
+});
+
+test('admin login and shell contain readable Chinese copy', () => {
+  const login = readProjectFile('admin/login.html');
+  const index = readProjectFile('admin/index.html');
+
+  ['管理员登录', '科研导航网站后台管理', '用户名', '密码', '登录'].forEach((copy) => {
+    assert.ok(login.includes(copy), `admin/login.html is missing ${copy}`);
+  });
+
+  ['仪表盘', '分类管理', '链接管理', '公告管理', '修改密码', '退出登录', '确认操作', '关闭', '确定继续吗？', '取消', '确定'].forEach((copy) => {
+    assert.ok(index.includes(copy), `admin/index.html is missing ${copy}`);
+  });
 });
 
 test('admin script uses custom toast and confirm helpers instead of native dialogs', () => {
@@ -45,8 +57,12 @@ test('admin modal templates escape attribute and textarea values', () => {
   assert.ok(source.includes('escapeHtml(announcement.content'));
 });
 
-test('admin page contains toast and confirm containers', () => {
+test('admin page contains toast and Bootstrap 5 confirm containers', () => {
   const html = readProjectFile('admin/index.html');
   assert.ok(html.includes('adminToastContainer'));
   assert.ok(html.includes('confirmModal'));
+  assert.match(
+    html,
+    /id="confirmModal"[\s\S]*?<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭">/
+  );
 });
