@@ -54,10 +54,31 @@ test('admin modal templates escape attribute and textarea values', () => {
   assert.ok(source.includes('function escapeAttribute('));
   assert.ok(source.includes("replace(/`/g, '&#96;')"));
   assert.ok(source.includes('escapeAttribute(category.name'));
+  assert.ok(source.includes('escapeAttribute(category.icon'));
+  assert.ok(source.includes('safeCategorySortOrder'));
   assert.ok(source.includes('escapeAttribute(link.title'));
   assert.ok(source.includes('escapeHtml(link.description'));
   assert.ok(source.includes('escapeAttribute(announcement.title'));
   assert.ok(source.includes('escapeHtml(announcement.content'));
+});
+
+test('admin toast messages preserve operation context', () => {
+  const source = readProjectFile('admin/assets/js/admin.js');
+
+  [
+    '分类保存成功',
+    '分类删除成功',
+    '链接保存成功',
+    '链接删除成功',
+    '公告保存成功',
+    '公告删除成功',
+    '密码修改成功，请重新登录',
+    '加载数据失败',
+    '删除失败，请稍后重试',
+    '修改密码失败，请检查原密码'
+  ].forEach((message) => {
+    assert.ok(source.includes(message), `admin.js is missing ${message}`);
+  });
 });
 
 test('admin page contains toast and Bootstrap 5 confirm containers', () => {

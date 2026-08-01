@@ -137,7 +137,7 @@ function checkLogin() {
         method: 'GET',
         success: function(response) {
             if (response.role !== 'admin') {
-                showToast('操作失败，请稍后重试', 'error');
+                showToast('您没有管理员权限', 'error');
                 window.location.href = '/admin/login.html';
                 return;
             }
@@ -270,7 +270,7 @@ function loadCategories() {
             updateCategoryFilter();
         },
         error: function() {
-            showToast('操作失败，请稍后重试', 'error');
+            showToast('加载数据失败', 'error');
         }
     });
 }
@@ -321,9 +321,13 @@ function updateCategoryFilter() {
 
 // 显示分类模态框
 function showCategoryModal(id = null) {
+    // 当前分类 API/data model 不含 description 字段，仅转义现有分类字段。
     const category = id ? categories.find(c => c.id === id) : {};
     const safeName = escapeAttribute(category.name || '');
     const safeIcon = escapeAttribute(category.icon || '');
+    const safeCategorySortOrder = Number.isFinite(Number(category.sort_order))
+        ? Number(category.sort_order)
+        : 0;
 
     const html = `
         <form id="categoryForm">
@@ -338,7 +342,7 @@ function showCategoryModal(id = null) {
             </div>
             <div class="mb-3">
                 <label class="form-label">排序</label>
-                <input type="number" class="form-control" id="categorySort" value="${category ? category.sort_order : 0}">
+                <input type="number" class="form-control" id="categorySort" value="${safeCategorySortOrder}">
                 <div class="form-text">数字越小越靠前</div>
             </div>
         </form>
@@ -374,12 +378,12 @@ function saveCategory(id) {
         contentType: 'application/json',
         data: JSON.stringify(data),
         success: function() {
-            showToast('保存成功', 'success');
+            showToast('分类保存成功', 'success');
             getModal('#commonModal').hide();
             loadCategories();
         },
         error: function(xhr) {
-            showToast(xhr.responseJSON?.error || '操作失败，请稍后重试', 'error');
+            showToast(xhr.responseJSON?.error || '分类保存失败，请稍后重试', 'error');
         }
     });
 }
@@ -396,11 +400,11 @@ async function deleteCategory(id) {
         url: `${API_BASE}/categories/${id}`,
         method: 'DELETE',
         success: function() {
-            showToast('保存成功', 'success');
+            showToast('分类删除成功', 'success');
             loadCategories();
         },
         error: function(xhr) {
-            showToast(xhr.responseJSON?.error || '操作失败，请稍后重试', 'error');
+            showToast(xhr.responseJSON?.error || '删除失败，请稍后重试', 'error');
         }
     });
 }
@@ -415,7 +419,7 @@ function loadLinks() {
             renderLinksTable();
         },
         error: function() {
-            showToast('操作失败，请稍后重试', 'error');
+            showToast('加载数据失败', 'error');
         }
     });
 }
@@ -596,13 +600,13 @@ function saveLink(id) {
         contentType: 'application/json',
         data: JSON.stringify(data),
         success: function() {
-            showToast('保存成功', 'success');
+            showToast('链接保存成功', 'success');
             getModal('#commonModal').hide();
             loadLinks();
             loadDashboard();
         },
         error: function(xhr) {
-            showToast(xhr.responseJSON?.error || '操作失败，请稍后重试', 'error');
+            showToast(xhr.responseJSON?.error || '链接保存失败，请稍后重试', 'error');
         }
     });
 }
@@ -619,12 +623,12 @@ async function deleteLink(id) {
         url: `${API_BASE}/links/${id}`,
         method: 'DELETE',
         success: function() {
-            showToast('保存成功', 'success');
+            showToast('链接删除成功', 'success');
             loadLinks();
             loadDashboard();
         },
         error: function(xhr) {
-            showToast(xhr.responseJSON?.error || '操作失败，请稍后重试', 'error');
+            showToast(xhr.responseJSON?.error || '删除失败，请稍后重试', 'error');
         }
     });
 }
@@ -639,7 +643,7 @@ function loadAnnouncements() {
             renderAnnouncementsTable();
         },
         error: function() {
-            showToast('操作失败，请稍后重试', 'error');
+            showToast('加载数据失败', 'error');
         }
     });
 }
@@ -739,12 +743,12 @@ function saveAnnouncement(id) {
         contentType: 'application/json',
         data: JSON.stringify(data),
         success: function() {
-            showToast('保存成功', 'success');
+            showToast('公告保存成功', 'success');
             getModal('#commonModal').hide();
             loadAnnouncements();
         },
         error: function(xhr) {
-            showToast(xhr.responseJSON?.error || '操作失败，请稍后重试', 'error');
+            showToast(xhr.responseJSON?.error || '公告保存失败，请稍后重试', 'error');
         }
     });
 }
@@ -761,11 +765,11 @@ async function deleteAnnouncement(id) {
         url: `${API_BASE}/announcements/${id}`,
         method: 'DELETE',
         success: function() {
-            showToast('保存成功', 'success');
+            showToast('公告删除成功', 'success');
             loadAnnouncements();
         },
         error: function(xhr) {
-            showToast(xhr.responseJSON?.error || '操作失败，请稍后重试', 'error');
+            showToast(xhr.responseJSON?.error || '删除失败，请稍后重试', 'error');
         }
     });
 }
@@ -828,7 +832,7 @@ function changePassword() {
             newPassword: newPassword
         }),
         success: function() {
-            showToast('保存成功', 'success');
+            showToast('密码修改成功，请重新登录', 'success');
             getModal('#commonModal').hide();
             setTimeout(function() {
                 removeToken();
@@ -836,7 +840,7 @@ function changePassword() {
             }, 1500);
         },
         error: function(xhr) {
-            showToast(xhr.responseJSON?.error || '操作失败，请稍后重试', 'error');
+            showToast(xhr.responseJSON?.error || '修改密码失败，请检查原密码', 'error');
         }
     });
 }
