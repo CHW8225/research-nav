@@ -1,6 +1,5 @@
-const { Low } = require('lowdb');
-const { JSONFile } = require('lowdb/node');
 const path = require('path');
+const { JSONDatabase } = require('./utils/json-database');
 const { categories, links } = require('./seed-data');
 
 const dbPath = process.env.DB_PATH || path.join(__dirname, 'database', 'db.json');
@@ -12,8 +11,7 @@ const defaultData = {
   announcements: []
 };
 
-const adapter = new JSONFile(dbPath);
-const db = new Low(adapter, defaultData);
+const db = new JSONDatabase(dbPath, defaultData);
 
 const importData = async () => {
   try {
@@ -40,7 +38,7 @@ const importData = async () => {
 
       db.data.categories.push(item);
       categoryMap.set(category.name, id);
-      console.log(`✅ 导入分类: ${category.name} (ID: ${id})`);
+      console.log(`✓ 导入分类: ${category.name} (ID: ${id})`);
     });
 
     let successCount = 0;
@@ -50,7 +48,7 @@ const importData = async () => {
       const categoryId = categoryMap.get(link.category);
 
       if (!categoryId) {
-        console.error(`❌ 未找到分类 ${link.category}，跳过链接 ${link.title}`);
+        console.error(`✗ 未找到分类 ${link.category}，跳过链接 ${link.title}`);
         failCount++;
         return;
       }
@@ -82,13 +80,13 @@ const importData = async () => {
 
     await db.write();
 
-    console.log(`\n✅ 链接导入完成！成功: ${successCount} 个，失败: ${failCount} 个`);
+    console.log(`\n✓ 链接导入完成！成功: ${successCount} 个，失败: ${failCount} 个`);
     console.log(`分类总数: ${db.data.categories.length}`);
     console.log(`链接总数: ${db.data.links.length}`);
     console.log(`置顶链接: ${db.data.links.filter(link => link.is_pinned === 1).length}`);
     console.log(`公告总数: ${db.data.announcements.length}`);
   } catch (error) {
-    console.error('\n❌ 数据导入失败:', error);
+    console.error('\n✗ 数据导入失败:', error);
     process.exit(1);
   }
 };
